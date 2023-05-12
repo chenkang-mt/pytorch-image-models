@@ -39,6 +39,11 @@ from timm.scheduler import create_scheduler_v2, scheduler_kwargs
 from timm.utils import ApexScaler, NativeScaler
 
 try:
+    import torch_musa
+except:
+    print('import torch_musa errof, please check whether torch_musa exists')
+
+try:
     from apex import amp
     from apex.parallel import DistributedDataParallel as ApexDDP
     from apex.parallel import convert_syncbn_model
@@ -354,6 +359,9 @@ group.add_argument('--use-multi-epochs-loader', action='store_true', default=Fal
                    help='use the multi-epochs-loader to save time at the beginning of every epoch')
 group.add_argument('--log-wandb', action='store_true', default=False,
                    help='log training and validation metrics to wandb')
+group.add_argument('--device', default='cpu', type=str, metavar='DEVICE',
+                   help='device to train the model')
+
 
 
 def _parse_args():
@@ -383,7 +391,12 @@ def main():
 
     args.prefetcher = not args.no_prefetcher
     args.grad_accum_steps = max(1, args.grad_accum_steps)
-    device = utils.init_distributed_device(args)
+    # device = utils.init_distributed_device(args)
+    device=torch.device(args.device)
+    args.distributed = False
+    args.rank=0
+    args.world_size = 1
+
     if args.distributed:
         _logger.info(
             'Training in distributed mode with multiple processes, 1 device per process.'
@@ -783,6 +796,7 @@ def main():
                 loss_scaler=loss_scaler,
                 model_ema=model_ema,
                 mixup_fn=mixup_fn,
+                device=device,
             )
 
             if args.distributed and args.dist_bn in ('broadcast', 'reduce'):
@@ -796,6 +810,7 @@ def main():
                 validate_loss_fn,
                 args,
                 amp_autocast=amp_autocast,
+                device=device,
             )
 
             if model_ema is not None and not args.model_ema_force_cpu:
@@ -809,6 +824,7 @@ def main():
                     args,
                     amp_autocast=amp_autocast,
                     log_suffix=' (EMA)',
+                    device=device,
                 )
                 eval_metrics = ema_eval_metrics
 
@@ -881,6 +897,7 @@ def train_one_epoch(
     optimizer.zero_grad()
     update_sample_count = 0
     for batch_idx, (input, target) in enumerate(loader):
+        print(f"----------batch_idx:{batch_idx}")
         last_batch = batch_idx == last_batch_idx
         need_update = last_batch or (batch_idx + 1) % accum_steps == 0
         update_idx = batch_idx // accum_steps
