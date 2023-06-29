@@ -118,7 +118,7 @@ group.add_argument('--num-classes', type=int, default=None, metavar='N',
                    help='number of label classes (Model default if None)')
 group.add_argument('--gp', default=None, type=str, metavar='POOL',
                    help='Global pool type, one of (fast, avg, max, avgmax, avgmaxc). Model default if None.')
-group.add_argument('--img-size', type=int, default=None, metavar='N',
+group.add_argument('--img-size', type=int, default=288, metavar='N',
                    help='Image size (default: None => model default)')
 group.add_argument('--in-chans', type=int, default=None, metavar='N',
                    help='Image input channels (default: None => 3)')
@@ -164,13 +164,13 @@ scripting_group.add_argument('--torchcompile', nargs='?', type=str, default=None
 group = parser.add_argument_group('Optimizer parameters')
 group.add_argument('--opt', default='sgd', type=str, metavar='OPTIMIZER',
                    help='Optimizer (default: "sgd")')
-group.add_argument('--opt-eps', default=None, type=float, metavar='EPSILON',
+group.add_argument('--opt-eps', default=0.001, type=float, metavar='EPSILON',
                    help='Optimizer Epsilon (default: None, use opt default)')
 group.add_argument('--opt-betas', default=None, type=float, nargs='+', metavar='BETA',
                    help='Optimizer Betas (default: None, use opt default)')
 group.add_argument('--momentum', type=float, default=0.9, metavar='M',
                    help='Optimizer momentum (default: 0.9)')
-group.add_argument('--weight-decay', type=float, default=2e-5,
+group.add_argument('--weight-decay', type=float, default=1e-5,
                    help='weight decay (default: 2e-5)')
 group.add_argument('--clip-grad', type=float, default=None, metavar='NORM',
                    help='Clip gradient norm (default: None, no clipping)')
@@ -182,7 +182,7 @@ group.add_argument('--opt-kwargs', nargs='*', default={}, action=utils.ParseKwar
 
 # Learning rate schedule parameters
 group = parser.add_argument_group('Learning rate schedule parameters')
-group.add_argument('--sched', type=str, default='cosine', metavar='SCHEDULER',
+group.add_argument('--sched', type=str, default='step', metavar='SCHEDULER',
                    help='LR scheduler (default: "step"')
 group.add_argument('--sched-on-updates', action='store_true', default=False,
                    help='Apply LR scheduler step on update instead of epoch end.')
@@ -208,7 +208,7 @@ group.add_argument('--lr-cycle-limit', type=int, default=1, metavar='N',
                    help='learning rate cycle limit, cycles enabled if > 1')
 group.add_argument('--lr-k-decay', type=float, default=1.0,
                    help='learning rate k-decay for cosine/poly (default: 1.0)')
-group.add_argument('--warmup-lr', type=float, default=1e-5, metavar='LR',
+group.add_argument('--warmup-lr', type=float, default=1e-6, metavar='LR',
                    help='warmup learning rate (default: 1e-5)')
 group.add_argument('--min-lr', type=float, default=0, metavar='LR',
                    help='lower lr bound for cyclic schedulers that hit 0 (default: 0)')
@@ -220,7 +220,7 @@ group.add_argument('--start-epoch', default=None, type=int, metavar='N',
                    help='manual epoch number (useful on restarts)')
 group.add_argument('--decay-milestones', default=[90, 180, 270], type=int, nargs='+', metavar="MILESTONES",
                    help='list of decay epoch indices for multistep lr. must be increasing')
-group.add_argument('--decay-epochs', type=float, default=90, metavar='N',
+group.add_argument('--decay-epochs', type=float, default=2.4, metavar='N',
                    help='epoch interval to decay LR')
 group.add_argument('--warmup-epochs', type=int, default=5, metavar='N',
                    help='epochs to warmup LR, if scheduler supports')
@@ -230,7 +230,7 @@ group.add_argument('--cooldown-epochs', type=int, default=0, metavar='N',
                    help='epochs to cooldown LR at min_lr, after cyclic schedule ends')
 group.add_argument('--patience-epochs', type=int, default=10, metavar='N',
                    help='patience epochs for Plateau LR scheduler (default: 10)')
-group.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RATE',
+group.add_argument('--decay-rate', '--dr', type=float, default=0.97, metavar='RATE',
                    help='LR decay rate (default: 0.1)')
 
 # Augmentation & regularization parameters
@@ -247,7 +247,7 @@ group.add_argument('--vflip', type=float, default=0.,
                    help='Vertical flip training aug probability')
 group.add_argument('--color-jitter', type=float, default=0.4, metavar='PCT',
                    help='Color jitter factor (default: 0.4)')
-group.add_argument('--aa', type=str, default=None, metavar='NAME',
+group.add_argument('--aa', type=str, default='rand-m9-mstd0.5', metavar='NAME',
                    help='Use AutoAugment policy. "v0" or "original". (default: None)'),
 group.add_argument('--aug-repeats', type=float, default=0,
                    help='Number of augmentation repetitions (distributed training only) (default: 0)')
@@ -259,7 +259,7 @@ group.add_argument('--bce-loss', action='store_true', default=False,
                    help='Enable BCE loss w/ Mixup/CutMix use.')
 group.add_argument('--bce-target-thresh', type=float, default=None,
                    help='Threshold for binarizing softened BCE targets (default: None, disabled)')
-group.add_argument('--reprob', type=float, default=0., metavar='PCT',
+group.add_argument('--reprob', type=float, default=0.2, metavar='PCT',
                    help='Random erase prob (default: 0.)')
 group.add_argument('--remode', type=str, default='pixel',
                    help='Random erase mode (default: "pixel")')
@@ -285,11 +285,11 @@ group.add_argument('--smoothing', type=float, default=0.1,
                    help='Label smoothing (default: 0.1)')
 group.add_argument('--train-interpolation', type=str, default='random',
                    help='Training interpolation (random, bilinear, bicubic default: "random")')
-group.add_argument('--drop', type=float, default=0.0, metavar='PCT',
+group.add_argument('--drop', type=float, default=0.3, metavar='PCT',
                    help='Dropout rate (default: 0.)')
 group.add_argument('--drop-connect', type=float, default=None, metavar='PCT',
                    help='Drop connect rate, DEPRECATED, use drop-path (default: None)')
-group.add_argument('--drop-path', type=float, default=None, metavar='PCT',
+group.add_argument('--drop-path', type=float, default=0.2, metavar='PCT',
                    help='Drop path rate (default: None)')
 group.add_argument('--drop-block', type=float, default=None, metavar='PCT',
                    help='Drop block rate (default: None)')
@@ -313,7 +313,7 @@ group.add_argument('--model-ema', action='store_true', default=False,
                    help='Enable tracking moving average of model weights')
 group.add_argument('--model-ema-force-cpu', action='store_true', default=False,
                    help='Force ema to be tracked on CPU, rank=0 node only. Disables EMA validation.')
-group.add_argument('--model-ema-decay', type=float, default=0.9998,
+group.add_argument('--model-ema-decay', type=float, default=0.9999,
                    help='decay factor for model weights moving average (default: 0.9998)')
 
 # Misc
@@ -322,7 +322,7 @@ group.add_argument('--seed', type=int, default=42, metavar='S',
                    help='random seed (default: 42)')
 group.add_argument('--worker-seeding', type=str, default='all',
                    help='worker seed mode (default: all)')
-group.add_argument('--log-interval', type=int, default=50, metavar='N',
+group.add_argument('--log-interval', type=int, default=1, metavar='N',
                    help='how many batches to wait before logging training status')
 group.add_argument('--recovery-interval', type=int, default=0, metavar='N',
                    help='how many batches to wait before writing recovery checkpoint')
@@ -362,8 +362,6 @@ group.add_argument('--log-wandb', action='store_true', default=False,
 group.add_argument('--device', default='cpu', type=str, metavar='DEVICE',
                    help='device to train the model')
 
-
-
 def _parse_args():
     # Do we have a config file to parse?
     args_config, remaining = config_parser.parse_known_args()
@@ -381,9 +379,7 @@ def _parse_args():
     return args, args_text
 
 
-def main():
-    utils.setup_default_logging()
-    args, args_text = _parse_args()
+def main(args, args_text):
 
     if torch.cuda.is_available():
         torch.backends.cuda.matmul.allow_tf32 = True
@@ -826,7 +822,7 @@ def main():
                     log_suffix=' (EMA)',
                     device=device,
                 )
-                eval_metrics = ema_eval_metrics
+                # eval_metrics = ema_eval_metrics
 
             if output_dir is not None:
                 lrs = [param_group['lr'] for param_group in optimizer.param_groups]
@@ -854,6 +850,7 @@ def main():
 
     if best_metric is not None:
         _logger.info('*** Best metric: {0} (epoch {1})'.format(best_metric, best_epoch))
+        return best_metric
 
 
 def train_one_epoch(
@@ -897,7 +894,6 @@ def train_one_epoch(
     optimizer.zero_grad()
     update_sample_count = 0
     for batch_idx, (input, target) in enumerate(loader):
-        print(f"----------batch_idx:{batch_idx}")
         last_batch = batch_idx == last_batch_idx
         need_update = last_batch or (batch_idx + 1) % accum_steps == 0
         update_idx = batch_idx // accum_steps
@@ -1087,6 +1083,54 @@ def validate(
 
     return metrics
 
+def run_musa_efficientNet(config):
+    """Run EfficientNet on musa, which is mainly used for test_models
+    (https://github.mthreads.com/zhi-cai/test_models/tree/main/test_perfmax_examples).
+    The ``config`` parameter is passed in the test_model. Results will be returned
+    to test_models and used to be compared with golden value.
+    Args:
+        config (Dict): A dictionary including all parameters required for the model to run.
+            For example,
+            {
+                "model_path": "xxx",
+                "dataset_path": "xxx",
+                "batch_size": "xxx",
+                "epoch_num": "xxx", (for training)
+                "eval_batch_size": "xxx", (for training)
+            }
+    Returns:
+        Dict: A dictionary including metrics for the model. For example,
+            {
+                "metrics": {
+                    "Acc1": 0.5,
+                    "Acc5": 0.78
+                },
+                "performance": {
+                    "xxx": xxx
+                }
+            }
+    """
+    utils.setup_default_logging()
+    args, args_text = _parse_args()
+    args.device = 'musa'
+    args.model = 'efficientnetv2_rw_t'
+    args.b = config['batch_size']
+    args.data_dir = config['data_path']
+    args.epochs = config['epoch_num']
+    args.opt = 'adamw'
+    args.lr = 0.016
+    args.model_ema = True
+    best_metric = main(args, args_text)
+
+
+    musa_result = {"metrics": {"Acc1":best_metric}} # 0.5 and 0.78 should from summary["benchmark_result"]["metrics"][1]["Acc1"]
+    return musa_result
 
 if __name__ == '__main__':
-    main()
+    # utils.setup_default_logging()
+    # args, args_text = _parse_args()
+    # main(args, args_text)
+    config = {'device':'musa:2', 'model':'efficientnetv2_rw_t', 'batch_size':128,
+            'dataset_path': '/home/kangchen/data/tiny-imagenet/tiny-imagenet-200/',
+            'epoch_num':10}
+    res = run_musa_efficientNet(config)

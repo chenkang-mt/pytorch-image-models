@@ -1,9 +1,10 @@
 import subprocess
 
-cmd = "python train.py /home/kangchen/tiny-imagenet/tiny-imagenet-200/ \
+cmd = "python train.py \
+    --data-dir /home/data/perfmax_examples/tiny-imagenet/tiny-imagenet-200/ \
     --model efficientnetv2_rw_t \
     --img-size 288 -b 128 \
-    --device musa \
+    --device musa:1 \
     --sched step \
     --epochs 450 \
     --decay-epochs 2.4 \
