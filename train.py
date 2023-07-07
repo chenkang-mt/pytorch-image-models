@@ -80,6 +80,12 @@ _logger = logging.getLogger('train')
 config_parser = parser = argparse.ArgumentParser(description='Training Config', add_help=False)
 parser.add_argument('-c', '--config', default='', type=str, metavar='FILE',
                     help='YAML config file specifying default arguments')
+parser.add_argument(
+    "-s",
+    type=str,
+    default="unused",
+    help=("This parameter is not used, it is only for pytest in test_models repo!"),
+)
 
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
